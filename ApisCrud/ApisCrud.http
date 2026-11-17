@@ -1,0 +1,11 @@
+@ApisCrud_HostAddress = http://localhost:5283
+
+GET {{ApisCrud_HostAddress}}/openapi/v1.json
+Accept: application/json
+
+###
+
+GET {{ApisCrud_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
