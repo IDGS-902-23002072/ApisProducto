@@ -1,5 +1,4 @@
-﻿
-using ApisCrud.Data;
+﻿using ApisCrud.Data;
 using ApisCrud.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -62,37 +61,47 @@ namespace ApisCrud.Controllers
         [HttpPost]
         public async Task<ActionResult<UsuarioDTO>> PostUsuario(Usuario usuario)
         {
-            if (string.IsNullOrWhiteSpace(usuario.Contrasena))
-                return BadRequest("La contraseña es obligatoria.");
+            // DIAGNÓSTICO: devuelve el error real en lugar de un 500 vacío.
+            // Quitar el try/catch cuando se encuentre la causa.
+            try
+            {
+                if (string.IsNullOrWhiteSpace(usuario.Contrasena))
+                    return BadRequest("La contraseña es obligatoria.");
 
-            bool correoExiste = await _context.Usuarios
-                .AnyAsync(u => u.Correo == usuario.Correo);
+                bool correoExiste = await _context.Usuarios
+                    .AnyAsync(u => u.Correo == usuario.Correo);
 
-            if (correoExiste)
-                return BadRequest("El correo ya está registrado.");
+                if (correoExiste)
+                    return BadRequest("El correo ya está registrado.");
 
-            usuario.CreatedAt = DateTime.UtcNow;
-            usuario.Contrasena = _hasher.HashPassword(
-                usuario,
-                usuario.Contrasena
-            );
+                usuario.CreatedAt = DateTime.UtcNow;
+                usuario.Contrasena = _hasher.HashPassword(
+                    usuario,
+                    usuario.Contrasena
+                );
 
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
+                _context.Usuarios.Add(usuario);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction(
-                nameof(GetUsuario),
-                new { id = usuario.IdUsuario },
-                new UsuarioDTO
-                {
-                    IdUsuario = usuario.IdUsuario,
-                    Nombre = usuario.Nombre,
-                    Correo = usuario.Correo,
-                    Telefono = usuario.Telefono,
-                    Estatus = usuario.Estatus,
-                    CreatedAt = usuario.CreatedAt
-                }
-            );
+                return CreatedAtAction(
+                    nameof(GetUsuario),
+                    new { id = usuario.IdUsuario },
+                    new UsuarioDTO
+                    {
+                        IdUsuario = usuario.IdUsuario,
+                        Nombre = usuario.Nombre,
+                        Correo = usuario.Correo,
+                        Telefono = usuario.Telefono,
+                        Estatus = usuario.Estatus,
+                        CreatedAt = usuario.CreatedAt
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         // PUT: api/Usuarios/5

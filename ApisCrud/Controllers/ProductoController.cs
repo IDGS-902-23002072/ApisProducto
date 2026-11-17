@@ -1,5 +1,4 @@
-﻿
-using ApisCrud.Data;
+﻿using ApisCrud.Data;
 using ApisCrud.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -40,17 +39,27 @@ namespace ApisCrud.Controllers
         [HttpPost]
         public async Task<ActionResult<Producto>> PostProducto(Producto producto)
         {
-            producto.CreatedAt = DateTime.UtcNow;
-            producto.UpdatedAt = null;
+            // DIAGNÓSTICO: devuelve el error real en lugar de un 500 vacío.
+            // Quitar el try/catch cuando se encuentre la causa.
+            try
+            {
+                producto.CreatedAt = DateTime.UtcNow;
+                producto.UpdatedAt = null;
 
-            _context.Productos.Add(producto);
-            await _context.SaveChangesAsync();
+                _context.Productos.Add(producto);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction(
-                nameof(GetProducto),
-                new { id = producto.IdProducto },
-                producto
-            );
+                return CreatedAtAction(
+                    nameof(GetProducto),
+                    new { id = producto.IdProducto },
+                    producto
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         // PUT: api/Productos/5
